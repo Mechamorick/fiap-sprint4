@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interface</title>
+    <style>
+        /* Estilos para o histórico de conversa */
+        #chat-history {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user {
+            color: blue;
+        }
+        .bot {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bem-vindo ao Eurobot</h1>
+    <div id="chat-history"></div>
+    <div>
+        <label for="message">Digite sua mensagem:</label>
+        <input type="text" id="message" name="message">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+    <div id="response"></div>
+
+    <script>
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+
+            // Adiciona a mensagem do usuário ao histórico
+            const chatHistory = document.getElementById('chat-history');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user';
+            userMessageDiv.innerText = 'Você: ' + message;
+            chatHistory.appendChild(userMessageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Rolagem automática
+
+            fetch('/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Adiciona a resposta do bot ao histórico
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot';
+                botMessageDiv.innerText = 'Eurobot: ' + data.response;
+                chatHistory.appendChild(botMessageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight; // Rolagem automática
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                document.getElementById('response').innerText = 'Erro ao enviar a mensagem: ' + error.message;
+            });
+
+            // Limpa o campo de entrada
+            document.getElementById('message').value = '';
+        }
+    </script>
+</body>
+</html>
